@@ -1,7 +1,7 @@
 var sketchVersion;
 
 var onRun = function(context) {
-  
+
 	var selection = context.selection
 	if(selection.count() == 0) {
 		NSApplication.sharedApplication().displayDialog_withTitle("Draw a circle on the canvas, select it, then run the plugin again.", "Select a circle!")
@@ -10,7 +10,7 @@ var onRun = function(context) {
 
 	var layer = selection.firstObject(),
 		diameter = layer.frame().width();
-	if (layer.className() != "MSShapeGroup" || diameter != layer.frame().height()) {
+	if (layer.className() != "MSOvalShape" || diameter != layer.frame().height()) {
 		NSApplication.sharedApplication().displayDialog_withTitle("This only works when you have a Circle Shape layer selected. Width and Height must be equal.", "Select a circle!");
 		return
 	};
@@ -31,6 +31,7 @@ var onRun = function(context) {
 	dash, gap, rotateBy, slice, borders, border, color, firstValue;
 
  	firstValue = sliceColors[0];
+
 	if(firstValue.split(":").length == 2) {
 		// colors and %
 		rotateBy = 0;
@@ -65,6 +66,7 @@ var onRun = function(context) {
 			rotateBy += 360*sliceValue;
 
 			slice.setName(sliceColors[i])
+			//sice.parent = group;
 			allLayers.push(slice);
 		}
 
@@ -91,17 +93,31 @@ var onRun = function(context) {
 			slice.style().borderOptions().setDashPattern([dash, gap])
 			slice.setRotation(rotateBy*i)
 			slice.setName(sliceColors[i])
+			//sice.parent = group;
 			allLayers.push(slice);
 		}
 	}
 	disableFills(layer);
 
-	
 
-	layer.setHasClippingMask(1);
-	var layers = MSLayerArray.arrayWithLayers(allLayers);
-	var newGroup = MSLayerGroup.groupFromLayers(layers);
-	newGroup.setName(numSlices + " Slices Pie Chart");
+	/*
+		create group
+	*/
+	var sketch = require('sketch')
+	var Group = require('sketch/dom').Group
+	var document = sketch.getSelectedDocument()
+	var page = document.selectedPage
+
+  layer.setHasClippingMask(1);
+
+	var group = new Group({
+	parent: layer.parentGroup(),
+	name:  numSlices + " Slices Pie Chart",
+	layers: allLayers,
+	selected: false
+	})
+
+	group.adjustToFit()
 
 }
 
